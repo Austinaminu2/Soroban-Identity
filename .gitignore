@@ -26,3 +26,6 @@ infrastructure/cdn/cdn.env
 infrastructure/cdn/terraform/terraform.tfvars
 infrastructure/cdn/terraform/.terraform/
 infrastructure/cdn/terraform/*.tfstate*
+
+# Raw video recordings (published to YouTube, not stored in git)
+docs/videos/recordings/

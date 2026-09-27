@@ -1,0 +1,68 @@
+{
+  "series": {
+    "title": "Soroban Identity Tutorials",
+    "description": "Build with decentralized identity and verifiable credentials on Stellar. Source code: https://github.com/El-Chapo-Npm/Soroban-Identity",
+    "playlistId": null,
+    "privacyStatus": "unlisted"
+  },
+  "defaults": {
+    "categoryId": "28",
+    "defaultLanguage": "en",
+    "tags": [
+      "Stellar",
+      "Soroban",
+      "decentralized identity",
+      "DID",
+      "verifiable credentials",
+      "Web3",
+      "smart contracts"
+    ]
+  },
+  "videos": [
+    {
+      "slug": "01-introduction",
+      "title": "Soroban Identity #1 \u2014 Introduction",
+      "summary": "What Soroban Identity is, the problem it solves, and how the three contracts and the SDK fit together.",
+      "duration": "05:00",
+      "file": "recordings/01-introduction.mp4",
+      "thumbnail": "recordings/01-introduction.png",
+      "youtubeId": null
+    },
+    {
+      "slug": "02-quick-start",
+      "title": "Soroban Identity #2 \u2014 Quick Start on Testnet",
+      "summary": "From a fresh clone to contracts deployed on testnet, the dApp running locally, and your first DID.",
+      "duration": "10:00",
+      "file": "recordings/02-quick-start.mp4",
+      "thumbnail": "recordings/02-quick-start.png",
+      "youtubeId": null
+    },
+    {
+      "slug": "03-did-creation",
+      "title": "Soroban Identity #3 \u2014 Creating and Managing DIDs",
+      "summary": "The did:stellar method and DID document, then create, resolve, update and deactivate one with the SDK.",
+      "duration": "08:00",
+      "file": "recordings/03-did-creation.mp4",
+      "thumbnail": "recordings/03-did-creation.png",
+      "youtubeId": null
+    },
+    {
+      "slug": "04-credential-lifecycle",
+      "title": "Soroban Identity #4 \u2014 The Credential Lifecycle",
+      "summary": "Register an issuer, then issue, look up, verify, renew and revoke a verifiable credential.",
+      "duration": "15:00",
+      "file": "recordings/04-credential-lifecycle.mp4",
+      "thumbnail": "recordings/04-credential-lifecycle.png",
+      "youtubeId": null
+    },
+    {
+      "slug": "05-integration-guide",
+      "title": "Soroban Identity #5 \u2014 Integration Guide",
+      "summary": "Build a KYC-gated feature: SDK config, wallet connection, UI gating, server-side enforcement, sybil checks and mainnet.",
+      "duration": "20:00",
+      "file": "recordings/05-integration-guide.mp4",
+      "thumbnail": "recordings/05-integration-guide.png",
+      "youtubeId": null
+    }
+  ]
+}

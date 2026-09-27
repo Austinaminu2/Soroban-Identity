@@ -1,0 +1,37 @@
+In this video, recorded with SDK 0.1.0, we'll look at decentralized identifiers on Stellar: what a DID document contains, and how to create, resolve, update and deactivate one.
+
+A Soroban Identity DID is did colon stellar colon, followed by a Stellar address.
+Because the identifier comes from the address, there's exactly one DID per wallet, and anyone can work out a wallet's DID without asking the chain.
+
+The contract stores a DID document for each controller.
+id is the DID string. controller is the wallet that owns it, and only that wallet can change it.
+metadata is a map of strings to strings, for things like a display name or a website. There are also service endpoints, for pointing to APIs that act for this identity.
+created at and updated at are ledger timestamps, and active says whether the DID is still in use.
+
+Let's create a DID for Alice.
+Build an IdentityClient from the testnet config plus the three contract IDs, then call create DID with Alice's keypair and some metadata.
+The SDK builds the transaction, simulates it to get the resource footprint and fee, signs it with Alice's key, submits it, and waits for confirmation.
+Every write in the SDK returns the same shape: data, here the new DID and the estimated fee, plus the transaction hash, so you can link to it in an explorer.
+
+Notice the first check in create did: controller dot require auth.
+Soroban verifies that the controller actually signed the transaction. You can't create, update or deactivate a DID for someone else's wallet.
+And if Alice tries to create a second DID, the contract rejects it, and the SDK throws an error that says so.
+
+resolve DID returns the full document, with metadata as a plain object and timestamps as numbers.
+For a simple yes or no, for example to gate a feature, use has active DID. It returns false both for addresses with no DID and for deactivated ones, so you don't need a try/catch.
+Reads are simulations: they're free and nothing is signed.
+
+To change metadata, call update DID with the controller's keypair.
+One thing to know: update replaces the whole metadata map rather than merging, and it can't be empty. Send every key you want to keep.
+Resolve again and you'll see the new metadata and a fresh updated at.
+
+Deactivation is a soft delete. The document stays on-chain for auditability, but active flips to false.
+Only the contract admin can reactivate a DID, so treat deactivation as permanent in your app.
+Apps should check has active DID, not just whether a document exists.
+
+A quick word on metadata: it's public. Anyone can read it, forever.
+Put things there you'd put on a business card: a display name, a website, a country code if you want to be counted in network analytics.
+Never put personal data like emails, birth dates or document numbers in metadata. That's what credentials are for, and they're the next video.
+
+You can now create, resolve, update and deactivate a DID.
+Next, we'll issue, verify and revoke verifiable credentials, the part that makes identity useful.

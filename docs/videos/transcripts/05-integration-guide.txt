@@ -1,0 +1,72 @@
+In this final video, using SDK 0.1.0, we'll integrate Soroban Identity into an app.
+The example is a trading feature that only verified users can use. Alice has a KYC credential and gets in; Bob doesn't.
+We'll build the front end check, the back end enforcement, and a sybil check, then talk about errors, performance and mainnet.
+
+Here's the shape of it.
+The browser connects a wallet and does a check so the UI can show the right screen.
+But the browser can't be trusted, so our API does the authoritative check before doing anything that matters.
+Both talk to the same contracts through Soroban RPC, using the same SDK.
+
+Install the SDK alongside the Stellar SDK.
+Then create one config object for the whole app. Start from the testnet or mainnet preset and fill in the three contract IDs from environment variables.
+Keeping IDs in env vars means switching networks is a config change, not a code change.
+
+For wallets, the reference frontend has a useWallet hook built on Stellar Wallets Kit, so it supports Freighter and other Stellar wallets. Feel free to copy it.
+All we need from the wallet right now is the user's public key. Every check in this video is a read, so the user never has to sign anything to be verified.
+
+Here's a hook that answers one question: can this user trade?
+First, does the address have an active DID? If not, we send them to create one.
+Then we list their credentials and look for a KYC credential that isn't revoked, has become active, and hasn't expired.
+We return a small state machine, so the UI can show loading, create your DID, get verified, or unlocked.
+
+In the component, switch on the gate.
+Connect as Alice, and the trade form appears. Switch Freighter to Bob, and we're asked to create a DID first.
+Each state gets a next step, never just a locked door.
+
+Any registered issuer can issue a KYC credential, but your compliance team probably trusts only some of them.
+Keep your own allowlist of issuer addresses and check the credential's issuer against it.
+This also protects you if an issuer is later removed from the registry, because credentials it already issued stay valid on-chain.
+
+Now watch this. With devtools I can force the hook to return OK, and Bob sees the trade form.
+Front-end checks are for user experience. Anything that matters, like accepting an order, must be checked again on the server.
+
+On the server, write a middleware that runs before any protected route.
+Two checks, in this order. First, fetch the credential and make sure it actually belongs to the logged-in address, is a KYC credential, and comes from an issuer we accept. Otherwise anyone could present someone else's credential ID.
+Second, verify it, so we catch revocation and expiry.
+If either fails, return 403 with the reason.
+
+That middleware assumes req.auth.address really belongs to the caller. Soroban Identity doesn't handle login for you.
+The usual pattern is a challenge: the server sends a random nonce, the wallet signs it, and the server checks the signature against the address before starting a session.
+Only then do you trust the address, and only then do the identity checks mean anything.
+
+For things like airdrops or voting, KYC may be overkill but you still want one person, one account.
+The reputation contract's passes sybil check does exactly that: does this address have at least a minimum score, from at least a minimum number of independent reporters?
+Here we require a score of fifty from at least two reporters. Needing multiple reporters makes it much harder to game than a single score.
+
+Your app can contribute reputation too. Once the reputation admin registers your backend as a reporter, submit score deltas as users do good things, like completing trades without disputes.
+Keep the reason short and machine-readable. It's stored in the subject's history.
+
+Everything here goes over the network, so plan for failure.
+RPC calls can time out or be rate-limited. Catch errors and show a retry state instead of treating failure as not verified. You don't want a flaky connection to tell a verified user they aren't verified.
+On the server it's the other way round: fail closed. If you can't verify, don't allow the action.
+
+Each check is a simulation round trip, typically a few hundred milliseconds.
+On the server, cache results per address for a short time, a minute or so, so a burst of requests doesn't mean a burst of RPC calls.
+But always re-verify right before high-value actions, since a revocation should take effect immediately.
+
+If you're the one doing KYC, you're also an issuer.
+A common setup: your KYC vendor calls a webhook when a user passes, and your backend hashes the claims and issues the credential with a key registered as an issuer.
+Keep the issuer's secret key in a secrets manager, never in the front end, and store the credential ID so you can revoke it later.
+
+When you're ready for mainnet, here's the checklist.
+Deploy the contracts to mainnet and initialize them with an admin you control, ideally a multisig account.
+Register your production issuers and reporters.
+Switch your config to MAINNET CONFIG with the new contract IDs, and update your accepted issuers list, because mainnet addresses are different.
+Make sure wallets are on the right network, since a user on testnet will simply look unverified.
+And use a reliable RPC provider for production traffic.
+
+For automated tests, mock the SDK clients rather than hitting the network.
+Cover each state: no DID, no credential, each failure reason including not yet active, and valid. Then run a manual pass on testnet before every release.
+
+That's the whole series. You've seen the protocol, deployed it, managed DIDs and credentials, and integrated it into an app with proper server-side enforcement.
+Links to the code, the docs and the rest of the playlist are in the description. Thanks for watching, and happy building.

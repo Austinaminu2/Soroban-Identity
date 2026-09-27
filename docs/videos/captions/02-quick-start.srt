@@ -1,0 +1,252 @@
+1
+00:00:00,000 --> 00:00:08,815
+In this video we'll take Soroban Identity
+from a fresh clone to a running app on
+
+2
+00:00:08,815 --> 00:00:12,120
+Stellar testnet, using SDK version 0.1.0.
+
+3
+00:00:12,120 --> 00:00:20,384
+You'll need Rust, the Stellar CLI, Node 20
+or later, and a Stellar wallet like
+
+4
+00:00:20,384 --> 00:00:27,546
+Freighter. If you'd rather skip the
+installs, the repo ships a dev container
+
+5
+00:00:27,546 --> 00:00:29,750
+with all of it.
+
+6
+00:00:30,000 --> 00:00:37,756
+Clone the repository and take a look
+around.
+
+7
+00:00:37,756 --> 00:00:48,421
+contracts holds the three Soroban
+contracts, sdk is the TypeScript SDK,
+
+8
+00:00:48,421 --> 00:01:02,963
+frontend is the React app, server is an
+optional API server, and scripts has the
+
+9
+00:01:02,963 --> 00:01:09,750
+deploy script we'll use in a minute.
+
+10
+00:01:10,000 --> 00:01:22,422
+Soroban contracts are written in Rust and
+compiled to WebAssembly.
+
+11
+00:01:22,422 --> 00:01:39,813
+If you don't have Rust, install it with
+rustup, then add the wasm32 unknown
+
+12
+00:01:39,813 --> 00:01:49,750
+unknown target. That's the compilation
+target Soroban expects.
+
+13
+00:01:50,000 --> 00:02:11,931
+Next, the Stellar CLI. We use it to deploy
+contracts and to call them from the
+
+14
+00:02:11,931 --> 00:02:13,302
+terminal.
+
+15
+00:02:13,302 --> 00:02:29,750
+Installing it with cargo takes a few
+minutes, so I'll skip ahead.
+
+16
+00:02:30,000 --> 00:02:39,717
+To deploy we need a testnet account with
+some test lumens.
+
+17
+00:02:39,717 --> 00:02:53,850
+The CLI can generate a key and fund it
+through Friendbot in one step. I've called
+
+18
+00:02:53,850 --> 00:03:08,867
+it deployer. The secret stays in the CLI's
+key store, so it never has to appear on
+
+19
+00:03:08,867 --> 00:03:09,750
+screen.
+
+20
+00:03:10,000 --> 00:03:24,422
+The deploy script builds the three
+contracts, deploys each one to testnet,
+
+21
+00:03:24,422 --> 00:03:34,036
+and calls initialize with your address as
+admin.
+
+22
+00:03:34,036 --> 00:03:55,669
+It reads your key from STELLAR SECRET KEY.
+The CLI accepts a key name as well as a
+
+23
+00:03:55,669 --> 00:04:01,678
+secret, so I'm passing deployer.
+
+24
+00:04:01,678 --> 00:04:19,705
+When it finishes, the contract IDs are
+saved to a file called dot env dot
+
+25
+00:04:19,705 --> 00:04:35,328
+deployed in the repo root. It's
+git-ignored, and if you run the script
+
+26
+00:04:35,328 --> 00:04:49,750
+again it reuses contracts that already
+exist instead of deploying new ones.
+
+27
+00:04:50,000 --> 00:05:13,217
+The SDK and the frontend are npm
+workspaces, so one install at the root
+
+28
+00:05:13,217 --> 00:05:16,533
+covers both.
+
+29
+00:05:16,533 --> 00:05:39,750
+npm run build compiles the SDK first, then
+the frontend that depends on it.
+
+30
+00:05:40,000 --> 00:05:58,385
+The frontend reads its contract IDs from
+environment variables, with separate sets
+
+31
+00:05:58,385 --> 00:06:04,513
+for testnet and mainnet.
+
+32
+00:06:04,513 --> 00:06:29,026
+Copy the example file and paste in the
+three IDs from dot env dot deployed, into
+
+33
+00:06:29,026 --> 00:06:39,750
+the variables that start with VITE
+TESTNET.
+
+34
+00:06:40,000 --> 00:06:48,457
+Start the Vite dev server and open the
+local URL.
+
+35
+00:06:48,457 --> 00:06:58,606
+There's the app: Identity, Credentials and
+Issuer analytics tabs, a network switcher
+
+36
+00:06:58,606 --> 00:07:04,527
+and a wallet button in the header.
+
+37
+00:07:04,527 --> 00:07:18,059
+If a contract ID is missing or wasn't
+initialized, a banner at the top tells you
+
+38
+00:07:18,059 --> 00:07:19,750
+which one.
+
+39
+00:07:20,000 --> 00:07:34,645
+Make sure the app's network switcher says
+Testnet, and that your wallet is on
+
+40
+00:07:34,645 --> 00:07:47,197
+testnet too. If the two disagree, you'll
+be looking at different networks.
+
+41
+00:07:47,197 --> 00:07:58,704
+Click connect, choose Freighter, and
+approve. Your address appears in the
+
+42
+00:07:58,704 --> 00:07:59,750
+header.
+
+43
+00:08:00,000 --> 00:08:15,478
+Let's create our first DID. On the
+Identity tab, create a DID for the
+
+44
+00:08:15,478 --> 00:08:25,428
+connected wallet and approve the
+transaction in your wallet.
+
+45
+00:08:25,428 --> 00:08:39,800
+Then resolve your own address. There's
+your DID document: the did colon stellar
+
+46
+00:08:39,800 --> 00:08:49,750
+identifier, the controller, timestamps,
+and active set to true.
+
+47
+00:08:50,000 --> 00:09:05,143
+You can always check the chain directly.
+Load the IDs from dot env dot deployed and
+
+48
+00:09:05,143 --> 00:09:14,607
+call has active did for our address. It
+returns true.
+
+49
+00:09:14,607 --> 00:09:28,804
+Everything the app does is plain contract
+calls, so the CLI is a great debugging
+
+50
+00:09:28,804 --> 00:09:29,750
+tool.
+
+51
+00:09:30,000 --> 00:09:40,743
+That's it: contracts on testnet, the app
+running locally, and your first DID.
+
+52
+00:09:40,743 --> 00:09:53,139
+In the next video we'll look closely at
+DIDs: what's in the document, how metadata
+
+53
+00:09:53,139 --> 00:09:59,750
+works, and how to update and deactivate
+one.

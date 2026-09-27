@@ -1,0 +1,40 @@
+In this video we'll take Soroban Identity from a fresh clone to a running app on Stellar testnet, using SDK version 0.1.0.
+You'll need Rust, the Stellar CLI, Node 20 or later, and a Stellar wallet like Freighter. If you'd rather skip the installs, the repo ships a dev container with all of it.
+
+Clone the repository and take a look around.
+contracts holds the three Soroban contracts, sdk is the TypeScript SDK, frontend is the React app, server is an optional API server, and scripts has the deploy script we'll use in a minute.
+
+Soroban contracts are written in Rust and compiled to WebAssembly.
+If you don't have Rust, install it with rustup, then add the wasm32 unknown unknown target. That's the compilation target Soroban expects.
+
+Next, the Stellar CLI. We use it to deploy contracts and to call them from the terminal.
+Installing it with cargo takes a few minutes, so I'll skip ahead.
+
+To deploy we need a testnet account with some test lumens.
+The CLI can generate a key and fund it through Friendbot in one step. I've called it deployer. The secret stays in the CLI's key store, so it never has to appear on screen.
+
+The deploy script builds the three contracts, deploys each one to testnet, and calls initialize with your address as admin.
+It reads your key from STELLAR SECRET KEY. The CLI accepts a key name as well as a secret, so I'm passing deployer.
+When it finishes, the contract IDs are saved to a file called dot env dot deployed in the repo root. It's git-ignored, and if you run the script again it reuses contracts that already exist instead of deploying new ones.
+
+The SDK and the frontend are npm workspaces, so one install at the root covers both.
+npm run build compiles the SDK first, then the frontend that depends on it.
+
+The frontend reads its contract IDs from environment variables, with separate sets for testnet and mainnet.
+Copy the example file and paste in the three IDs from dot env dot deployed, into the variables that start with VITE TESTNET.
+
+Start the Vite dev server and open the local URL.
+There's the app: Identity, Credentials and Issuer analytics tabs, a network switcher and a wallet button in the header.
+If a contract ID is missing or wasn't initialized, a banner at the top tells you which one.
+
+Make sure the app's network switcher says Testnet, and that your wallet is on testnet too. If the two disagree, you'll be looking at different networks.
+Click connect, choose Freighter, and approve. Your address appears in the header.
+
+Let's create our first DID. On the Identity tab, create a DID for the connected wallet and approve the transaction in your wallet.
+Then resolve your own address. There's your DID document: the did colon stellar identifier, the controller, timestamps, and active set to true.
+
+You can always check the chain directly. Load the IDs from dot env dot deployed and call has active did for our address. It returns true.
+Everything the app does is plain contract calls, so the CLI is a great debugging tool.
+
+That's it: contracts on testnet, the app running locally, and your first DID.
+In the next video we'll look closely at DIDs: what's in the document, how metadata works, and how to update and deactivate one.

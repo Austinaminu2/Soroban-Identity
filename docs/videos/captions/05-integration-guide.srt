@@ -1,0 +1,463 @@
+1
+00:00:00,000 --> 00:00:09,066
+In this final video, using SDK 0.1.0,
+we'll integrate Soroban Identity into an
+
+2
+00:00:09,066 --> 00:00:09,763
+app.
+
+3
+00:00:09,763 --> 00:00:20,921
+The example is a trading feature that only
+verified users can use. Alice has a KYC
+
+4
+00:00:20,921 --> 00:00:25,105
+credential and gets in; Bob doesn't.
+
+5
+00:00:25,105 --> 00:00:35,566
+We'll build the front end check, the back
+end enforcement, and a sybil check, then
+
+6
+00:00:35,566 --> 00:00:39,750
+talk about errors, performance and
+mainnet.
+
+7
+00:00:40,000 --> 00:00:44,693
+Here's the shape of it.
+
+8
+00:00:44,693 --> 00:01:00,651
+The browser connects a wallet and does a
+check so the UI can show the right screen.
+
+9
+00:01:00,651 --> 00:01:13,792
+But the browser can't be trusted, so our
+API does the authoritative check before
+
+10
+00:01:13,792 --> 00:01:17,547
+doing anything that matters.
+
+11
+00:01:17,547 --> 00:01:29,750
+Both talk to the same contracts through
+Soroban RPC, using the same SDK.
+
+12
+00:01:30,000 --> 00:01:42,821
+Install the SDK alongside the Stellar SDK.
+
+13
+00:01:42,821 --> 00:02:08,464
+Then create one config object for the
+whole app. Start from the testnet or
+
+14
+00:02:08,464 --> 00:02:30,444
+mainnet preset and fill in the three
+contract IDs from environment variables.
+
+15
+00:02:30,444 --> 00:02:57,918
+Keeping IDs in env vars means switching
+networks is a config change, not a code
+
+16
+00:02:57,918 --> 00:02:59,750
+change.
+
+17
+00:03:00,000 --> 00:03:13,165
+For wallets, the reference frontend has a
+useWallet hook built on Stellar Wallets
+
+18
+00:03:13,165 --> 00:03:27,343
+Kit, so it supports Freighter and other
+Stellar wallets. Feel free to copy it.
+
+19
+00:03:27,343 --> 00:03:44,559
+All we need from the wallet right now is
+the user's public key. Every check in this
+
+20
+00:03:44,559 --> 00:03:59,750
+video is a read, so the user never has to
+sign anything to be verified.
+
+21
+00:04:00,000 --> 00:04:19,958
+Here's a hook that answers one question:
+can this user trade?
+
+22
+00:04:19,958 --> 00:04:48,989
+First, does the address have an active
+DID? If not, we send them to create one.
+
+23
+00:04:48,989 --> 00:05:14,390
+Then we list their credentials and look
+for a KYC credential that isn't revoked,
+
+24
+00:05:14,390 --> 00:05:25,277
+has become active, and hasn't expired.
+
+25
+00:05:25,277 --> 00:05:54,307
+We return a small state machine, so the UI
+can show loading, create your DID, get
+
+26
+00:05:54,307 --> 00:05:59,750
+verified, or unlocked.
+
+27
+00:06:00,000 --> 00:06:12,849
+In the component, switch on the gate.
+
+28
+00:06:12,849 --> 00:06:36,711
+Connect as Alice, and the trade form
+appears. Switch Freighter to Bob, and
+
+29
+00:06:36,711 --> 00:06:49,559
+we're asked to create a DID first.
+
+30
+00:06:49,559 --> 00:07:09,750
+Each state gets a next step, never just a
+locked door.
+
+31
+00:07:10,000 --> 00:07:24,660
+Any registered issuer can issue a KYC
+credential, but your compliance team
+
+32
+00:07:24,660 --> 00:07:31,991
+probably trusts only some of them.
+
+33
+00:07:31,991 --> 00:07:45,429
+Keep your own allowlist of issuer
+addresses and check the credential's
+
+34
+00:07:45,429 --> 00:07:49,094
+issuer against it.
+
+35
+00:07:49,094 --> 00:08:06,198
+This also protects you if an issuer is
+later removed from the registry, because
+
+36
+00:08:06,198 --> 00:08:14,750
+credentials it already issued stay valid
+on-chain.
+
+37
+00:08:15,000 --> 00:08:34,506
+Now watch this. With devtools I can force
+the hook to return OK, and Bob sees the
+
+38
+00:08:34,506 --> 00:08:36,801
+trade form.
+
+39
+00:08:36,801 --> 00:08:50,571
+Front-end checks are for user experience.
+Anything that matters, like accepting an
+
+40
+00:08:50,571 --> 00:08:59,750
+order, must be checked again on the
+server.
+
+41
+00:09:00,000 --> 00:09:21,448
+On the server, write a middleware that
+runs before any protected route.
+
+42
+00:09:21,448 --> 00:09:46,470
+Two checks, in this order. First, fetch
+the credential and make sure it actually
+
+43
+00:09:46,470 --> 00:10:13,280
+belongs to the logged-in address, is a KYC
+credential, and comes from an issuer we
+
+44
+00:10:13,280 --> 00:10:29,366
+accept. Otherwise anyone could present
+someone else's credential ID.
+
+45
+00:10:29,366 --> 00:10:45,451
+Second, verify it, so we catch revocation
+and expiry.
+
+46
+00:10:45,451 --> 00:10:59,750
+If either fails, return 403 with the
+reason.
+
+47
+00:11:00,000 --> 00:11:08,156
+That middleware assumes req.auth.address
+really belongs to the caller. Soroban
+
+48
+00:11:08,156 --> 00:11:13,049
+Identity doesn't handle login for you.
+
+49
+00:11:13,049 --> 00:11:24,467
+The usual pattern is a challenge: the
+server sends a random nonce, the wallet
+
+50
+00:11:24,467 --> 00:11:34,254
+signs it, and the server checks the
+signature against the address before
+
+51
+00:11:34,254 --> 00:11:36,701
+starting a session.
+
+52
+00:11:36,701 --> 00:11:48,934
+Only then do you trust the address, and
+only then do the identity checks mean
+
+53
+00:11:48,934 --> 00:11:49,750
+anything.
+
+54
+00:11:50,000 --> 00:12:04,946
+For things like airdrops or voting, KYC
+may be overkill but you still want one
+
+55
+00:12:04,946 --> 00:12:07,936
+person, one account.
+
+56
+00:12:07,936 --> 00:12:19,893
+The reputation contract's passes sybil
+check does exactly that: does this address
+
+57
+00:12:19,893 --> 00:12:33,843
+have at least a minimum score, from at
+least a minimum number of independent
+
+58
+00:12:33,843 --> 00:12:34,839
+reporters?
+
+59
+00:12:34,839 --> 00:12:48,789
+Here we require a score of fifty from at
+least two reporters. Needing multiple
+
+60
+00:12:48,789 --> 00:12:59,750
+reporters makes it much harder to game
+than a single score.
+
+61
+00:13:00,000 --> 00:13:14,561
+Your app can contribute reputation too.
+Once the reputation admin registers your
+
+62
+00:13:14,561 --> 00:13:31,549
+backend as a reporter, submit score deltas
+as users do good things, like completing
+
+63
+00:13:31,549 --> 00:13:35,189
+trades without disputes.
+
+64
+00:13:35,189 --> 00:13:47,323
+Keep the reason short and
+machine-readable. It's stored in the
+
+65
+00:13:47,323 --> 00:13:49,750
+subject's history.
+
+66
+00:13:50,000 --> 00:13:59,336
+Everything here goes over the network, so
+plan for failure.
+
+67
+00:13:59,336 --> 00:14:13,340
+RPC calls can time out or be rate-limited.
+Catch errors and show a retry state
+
+68
+00:14:13,340 --> 00:14:24,543
+instead of treating failure as not
+verified. You don't want a flaky
+
+69
+00:14:24,543 --> 00:14:32,945
+connection to tell a verified user they
+aren't verified.
+
+70
+00:14:32,945 --> 00:14:46,949
+On the server it's the other way round:
+fail closed. If you can't verify, don't
+
+71
+00:14:46,949 --> 00:14:49,750
+allow the action.
+
+72
+00:14:50,000 --> 00:15:03,528
+Each check is a simulation round trip,
+typically a few hundred milliseconds.
+
+73
+00:15:03,528 --> 00:15:22,693
+On the server, cache results per address
+for a short time, a minute or so, so a
+
+74
+00:15:22,693 --> 00:15:33,967
+burst of requests doesn't mean a burst of
+RPC calls.
+
+75
+00:15:33,967 --> 00:15:45,241
+But always re-verify right before
+high-value actions, since a revocation
+
+76
+00:15:45,241 --> 00:15:49,750
+should take effect immediately.
+
+77
+00:15:50,000 --> 00:16:00,731
+If you're the one doing KYC, you're also
+an issuer.
+
+78
+00:16:00,731 --> 00:16:16,827
+A common setup: your KYC vendor calls a
+webhook when a user passes, and your
+
+79
+00:16:16,827 --> 00:16:31,850
+backend hashes the claims and issues the
+credential with a key registered as an
+
+80
+00:16:31,850 --> 00:16:32,923
+issuer.
+
+81
+00:16:32,923 --> 00:16:50,092
+Keep the issuer's secret key in a secrets
+manager, never in the front end, and store
+
+82
+00:16:50,092 --> 00:16:59,750
+the credential ID so you can revoke it
+later.
+
+83
+00:17:00,000 --> 00:17:09,089
+When you're ready for mainnet, here's the
+checklist.
+
+84
+00:17:09,089 --> 00:17:23,858
+Deploy the contracts to mainnet and
+initialize them with an admin you control,
+
+85
+00:17:23,858 --> 00:17:28,402
+ideally a multisig account.
+
+86
+00:17:28,402 --> 00:17:35,218
+Register your production issuers and
+reporters.
+
+87
+00:17:35,218 --> 00:17:51,123
+Switch your config to MAINNET CONFIG with
+the new contract IDs, and update your
+
+88
+00:17:51,123 --> 00:18:00,212
+accepted issuers list, because mainnet
+addresses are different.
+
+89
+00:18:00,212 --> 00:18:16,117
+Make sure wallets are on the right
+network, since a user on testnet will
+
+90
+00:18:16,117 --> 00:18:19,525
+simply look unverified.
+
+91
+00:18:19,525 --> 00:18:29,750
+And use a reliable RPC provider for
+production traffic.
+
+92
+00:18:30,000 --> 00:18:44,132
+For automated tests, mock the SDK clients
+rather than hitting the network.
+
+93
+00:18:44,132 --> 00:18:59,441
+Cover each state: no DID, no credential,
+each failure reason including not yet
+
+94
+00:18:59,441 --> 00:19:14,750
+active, and valid. Then run a manual pass
+on testnet before every release.
+
+95
+00:19:15,000 --> 00:19:27,647
+That's the whole series. You've seen the
+protocol, deployed it, managed DIDs and
+
+96
+00:19:27,647 --> 00:19:38,348
+credentials, and integrated it into an app
+with proper server-side enforcement.
+
+97
+00:19:38,348 --> 00:19:53,913
+Links to the code, the docs and the rest
+of the playlist are in the description.
+
+98
+00:19:53,913 --> 00:19:59,750
+Thanks for watching, and happy building.

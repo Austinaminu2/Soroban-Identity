@@ -1,0 +1,36 @@
+This is a decentralized identity, living on the Stellar network.
+This series is recorded against version 0.1.0 of the Soroban Identity SDK.
+Nobody issued it to this wallet, no company stores it, and any app on Stellar can read it in a single call.
+In the next five minutes you'll see what Soroban Identity is, why it exists, and how it's put together.
+
+Web3 has a strange gap. Your wallet can hold millions, but it can't say anything about who you are.
+Every app starts from zero. Reputation you earn in one marketplace doesn't follow you to the next.
+And when an app needs compliance, like KYC, the usual answer is to collect your documents and keep them on a server, which is exactly the kind of central honeypot blockchains were supposed to avoid.
+
+Soroban Identity is an identity layer for Stellar, built as Soroban smart contracts.
+It gives every wallet a decentralized identifier, a DID, in the form did colon stellar colon, followed by the wallet address.
+Trusted issuers can attach verifiable credentials to that DID: a KYC badge, a proof of membership, an achievement.
+Apps then verify those credentials on-chain, without ever seeing the underlying personal data.
+And a reputation layer lets trusted reporters score on-chain activity, with anti-sybil checks built in.
+
+Under the hood there are three contracts.
+The identity registry stores DID documents: who controls them, their metadata, and whether they're active.
+The credential manager keeps a list of trusted issuers, and handles issuing, revoking and verifying credentials.
+And the reputation contract aggregates scores from registered reporters, and answers one very useful question: does this address pass a sybil check?
+Each contract does one job, and they can be used independently.
+
+Most apps won't call the contracts directly. The TypeScript SDK wraps each one in a client.
+Point it at testnet or mainnet, give it the three contract IDs, and you can resolve a DID, verify a credential, or run a sybil check in a line of code.
+There's also a reference React app, the one you saw at the start, that works with Freighter and other Stellar wallets, and an API server for backends that prefer plain HTTP.
+
+Here's the whole idea in one picture.
+An issuer, say a KYC provider, issues a credential to a subject's address.
+The subject shares only the credential ID with a verifier.
+The verifier asks the contract: is this credential valid, not revoked, not expired?
+The answer is yes or no. The verifier never needs the passport scan.
+
+That pattern covers a lot of ground: KYC-gated DeFi, reputation for marketplaces, DAO voting eligibility, gated communities, and protecting airdrops from sybil farms.
+
+In the next video, the quick start, we'll deploy all three contracts to testnet and run the app locally in about ten minutes.
+After that we go deep on DIDs, the full credential lifecycle, and finally integrating Soroban Identity into your own app.
+See you in the quick start.

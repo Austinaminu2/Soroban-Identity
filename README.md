@@ -370,6 +370,20 @@ bash scripts/deploy.sh
 
 ---
 
+## Video Tutorials
+
+<!-- videos:start -->
+1. Introduction *(coming soon)* (05:00)
+2. Quick Start on Testnet *(coming soon)* (10:00)
+3. Creating and Managing DIDs *(coming soon)* (08:00)
+4. The Credential Lifecycle *(coming soon)* (15:00)
+5. Integration Guide *(coming soon)* (20:00)
+
+Scripts, captions and transcripts are in [docs/videos](docs/videos/README.md).
+<!-- videos:end -->
+
+---
+
 ## Use Cases
 
 - **KYC verification** for DeFi and financial applications on Stellar

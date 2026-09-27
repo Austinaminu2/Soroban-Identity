@@ -1,0 +1,236 @@
+1
+00:00:00,000 --> 00:00:03,929
+This is a decentralized identity, living
+on the Stellar network.
+
+2
+00:00:03,929 --> 00:00:08,643
+This series is recorded against version
+0.1.0 of the Soroban Identity SDK.
+
+3
+00:00:08,643 --> 00:00:14,536
+Nobody issued it to this wallet, no
+company stores it, and any app on Stellar
+
+4
+00:00:14,536 --> 00:00:17,286
+can read it in a single call.
+
+5
+00:00:17,286 --> 00:00:23,179
+In the next five minutes you'll see what
+Soroban Identity is, why it exists, and
+
+6
+00:00:23,179 --> 00:00:24,750
+how it's put together.
+
+7
+00:00:25,000 --> 00:00:33,398
+Web3 has a strange gap. Your wallet can
+hold millions, but it can't say anything
+
+8
+00:00:33,398 --> 00:00:35,637
+about who you are.
+
+9
+00:00:35,637 --> 00:00:43,475
+Every app starts from zero. Reputation you
+earn in one marketplace doesn't follow you
+
+10
+00:00:43,475 --> 00:00:45,155
+to the next.
+
+11
+00:00:45,155 --> 00:00:53,553
+And when an app needs compliance, like
+KYC, the usual answer is to collect your
+
+12
+00:00:53,553 --> 00:01:01,951
+documents and keep them on a server, which
+is exactly the kind of central honeypot
+
+13
+00:01:01,951 --> 00:01:04,750
+blockchains were supposed to avoid.
+
+14
+00:01:05,000 --> 00:01:13,084
+Soroban Identity is an identity layer for
+Stellar, built as Soroban smart contracts.
+
+15
+00:01:13,084 --> 00:01:21,791
+It gives every wallet a decentralized
+identifier, a DID, in the form did colon
+
+16
+00:01:21,791 --> 00:01:26,144
+stellar colon, followed by the wallet
+address.
+
+17
+00:01:26,144 --> 00:01:34,228
+Trusted issuers can attach verifiable
+credentials to that DID: a KYC badge, a
+
+18
+00:01:34,228 --> 00:01:37,337
+proof of membership, an achievement.
+
+19
+00:01:37,337 --> 00:01:43,556
+Apps then verify those credentials
+on-chain, without ever seeing the
+
+20
+00:01:43,556 --> 00:01:45,422
+underlying personal data.
+
+21
+00:01:45,422 --> 00:01:52,262
+And a reputation layer lets trusted
+reporters score on-chain activity, with
+
+22
+00:01:52,262 --> 00:01:54,750
+anti-sybil checks built in.
+
+23
+00:01:55,000 --> 00:01:59,905
+Under the hood there are three contracts.
+
+24
+00:01:59,905 --> 00:02:06,912
+The identity registry stores DID
+documents: who controls them, their
+
+25
+00:02:06,912 --> 00:02:10,415
+metadata, and whether they're active.
+
+26
+00:02:10,415 --> 00:02:18,824
+The credential manager keeps a list of
+trusted issuers, and handles issuing,
+
+27
+00:02:18,824 --> 00:02:21,627
+revoking and verifying credentials.
+
+28
+00:02:21,627 --> 00:02:28,634
+And the reputation contract aggregates
+scores from registered reporters, and
+
+29
+00:02:28,634 --> 00:02:37,042
+answers one very useful question: does
+this address pass a sybil check?
+
+30
+00:02:37,042 --> 00:02:44,750
+Each contract does one job, and they can
+be used independently.
+
+31
+00:02:45,000 --> 00:02:51,115
+Most apps won't call the contracts
+directly. The TypeScript SDK wraps each
+
+32
+00:02:51,115 --> 00:02:53,154
+one in a client.
+
+33
+00:02:53,154 --> 00:03:00,798
+Point it at testnet or mainnet, give it
+the three contract IDs, and you can
+
+34
+00:03:00,798 --> 00:03:08,952
+resolve a DID, verify a credential, or run
+a sybil check in a line of code.
+
+35
+00:03:08,952 --> 00:03:17,106
+There's also a reference React app, the
+one you saw at the start, that works with
+
+36
+00:03:17,106 --> 00:03:23,731
+Freighter and other Stellar wallets, and
+an API server for backends that prefer
+
+37
+00:03:23,731 --> 00:03:24,750
+plain HTTP.
+
+38
+00:03:25,000 --> 00:03:29,969
+Here's the whole idea in one picture.
+
+39
+00:03:29,969 --> 00:03:39,196
+An issuer, say a KYC provider, issues a
+credential to a subject's address.
+
+40
+00:03:39,196 --> 00:03:46,295
+The subject shares only the credential ID
+with a verifier.
+
+41
+00:03:46,295 --> 00:03:54,813
+The verifier asks the contract: is this
+credential valid, not revoked, not
+
+42
+00:03:54,813 --> 00:03:55,522
+expired?
+
+43
+00:03:55,522 --> 00:04:04,750
+The answer is yes or no. The verifier
+never needs the passport scan.
+
+44
+00:04:05,000 --> 00:04:16,837
+That pattern covers a lot of ground:
+KYC-gated DeFi, reputation for
+
+45
+00:04:16,837 --> 00:04:26,522
+marketplaces, DAO voting eligibility,
+gated communities, and protecting airdrops
+
+46
+00:04:26,522 --> 00:04:29,750
+from sybil farms.
+
+47
+00:04:30,000 --> 00:04:39,107
+In the next video, the quick start, we'll
+deploy all three contracts to testnet and
+
+48
+00:04:39,107 --> 00:04:43,964
+run the app locally in about ten minutes.
+
+49
+00:04:43,964 --> 00:04:51,857
+After that we go deep on DIDs, the full
+credential lifecycle, and finally
+
+50
+00:04:51,857 --> 00:04:56,107
+integrating Soroban Identity into your own
+app.
+
+51
+00:04:56,107 --> 00:04:59,750
+See you in the quick start.

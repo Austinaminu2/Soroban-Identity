@@ -1,0 +1,237 @@
+1
+00:00:00,000 --> 00:00:09,170
+In this video, recorded with SDK 0.1.0,
+we'll look at decentralized identifiers on
+
+2
+00:00:09,170 --> 00:00:18,339
+Stellar: what a DID document contains, and
+how to create, resolve, update and
+
+3
+00:00:18,339 --> 00:00:19,750
+deactivate one.
+
+4
+00:00:20,000 --> 00:00:29,917
+A Soroban Identity DID is did colon
+stellar colon, followed by a Stellar
+
+5
+00:00:29,917 --> 00:00:30,679
+address.
+
+6
+00:00:30,679 --> 00:00:39,833
+Because the identifier comes from the
+address, there's exactly one DID per
+
+7
+00:00:39,833 --> 00:00:49,750
+wallet, and anyone can work out a wallet's
+DID without asking the chain.
+
+8
+00:00:50,000 --> 00:00:55,815
+The contract stores a DID document for
+each controller.
+
+9
+00:00:55,815 --> 00:01:06,153
+id is the DID string. controller is the
+wallet that owns it, and only that wallet
+
+10
+00:01:06,153 --> 00:01:08,091
+can change it.
+
+11
+00:01:08,091 --> 00:01:18,429
+metadata is a map of strings to strings,
+for things like a display name or a
+
+12
+00:01:18,429 --> 00:01:27,474
+website. There are also service endpoints,
+for pointing to APIs that act for this
+
+13
+00:01:27,474 --> 00:01:28,120
+identity.
+
+14
+00:01:28,120 --> 00:01:36,519
+created at and updated at are ledger
+timestamps, and active says whether the
+
+15
+00:01:36,519 --> 00:01:39,750
+DID is still in use.
+
+16
+00:01:40,000 --> 00:01:45,696
+Let's create a DID for Alice.
+
+17
+00:01:45,696 --> 00:01:58,039
+Build an IdentityClient from the testnet
+config plus the three contract IDs, then
+
+18
+00:01:58,039 --> 00:02:06,583
+call create DID with Alice's keypair and
+some metadata.
+
+19
+00:02:06,583 --> 00:02:19,875
+The SDK builds the transaction, simulates
+it to get the resource footprint and fee,
+
+20
+00:02:19,875 --> 00:02:30,318
+signs it with Alice's key, submits it, and
+waits for confirmation.
+
+21
+00:02:30,318 --> 00:02:45,509
+Every write in the SDK returns the same
+shape: data, here the new DID and the
+
+22
+00:02:45,509 --> 00:02:59,750
+estimated fee, plus the transaction hash,
+so you can link to it in an explorer.
+
+23
+00:03:00,000 --> 00:03:08,097
+Notice the first check in create did:
+controller dot require auth.
+
+24
+00:03:08,097 --> 00:03:16,194
+Soroban verifies that the controller
+actually signed the transaction. You can't
+
+25
+00:03:16,194 --> 00:03:23,556
+create, update or deactivate a DID for
+someone else's wallet.
+
+26
+00:03:23,556 --> 00:03:35,333
+And if Alice tries to create a second DID,
+the contract rejects it, and the SDK
+
+27
+00:03:35,333 --> 00:03:39,750
+throws an error that says so.
+
+28
+00:03:40,000 --> 00:03:52,946
+resolve DID returns the full document,
+with metadata as a plain object and
+
+29
+00:03:52,946 --> 00:03:55,933
+timestamps as numbers.
+
+30
+00:03:55,933 --> 00:04:12,863
+For a simple yes or no, for example to
+gate a feature, use has active DID. It
+
+31
+00:04:12,863 --> 00:04:27,800
+returns false both for addresses with no
+DID and for deactivated ones, so you don't
+
+32
+00:04:27,800 --> 00:04:30,788
+need a try/catch.
+
+33
+00:04:30,788 --> 00:04:39,750
+Reads are simulations: they're free and
+nothing is signed.
+
+34
+00:04:40,000 --> 00:04:54,531
+To change metadata, call update DID with
+the controller's keypair.
+
+35
+00:04:54,531 --> 00:05:13,422
+One thing to know: update replaces the
+whole metadata map rather than merging,
+
+36
+00:05:13,422 --> 00:05:30,859
+and it can't be empty. Send every key you
+want to keep.
+
+37
+00:05:30,859 --> 00:05:49,750
+Resolve again and you'll see the new
+metadata and a fresh updated at.
+
+38
+00:05:50,000 --> 00:06:04,938
+Deactivation is a soft delete. The
+document stays on-chain for auditability,
+
+39
+00:06:04,938 --> 00:06:11,727
+but active flips to false.
+
+40
+00:06:11,727 --> 00:06:30,739
+Only the contract admin can reactivate a
+DID, so treat deactivation as permanent in
+
+41
+00:06:30,739 --> 00:06:33,455
+your app.
+
+42
+00:06:33,455 --> 00:06:49,750
+Apps should check has active DID, not just
+whether a document exists.
+
+43
+00:06:50,000 --> 00:06:58,803
+A quick word on metadata: it's public.
+Anyone can read it, forever.
+
+44
+00:06:58,803 --> 00:07:10,541
+Put things there you'd put on a business
+card: a display name, a website, a country
+
+45
+00:07:10,541 --> 00:07:17,877
+code if you want to be counted in network
+analytics.
+
+46
+00:07:17,877 --> 00:07:27,414
+Never put personal data like emails, birth
+dates or document numbers in metadata.
+
+47
+00:07:27,414 --> 00:07:34,750
+That's what credentials are for, and
+they're the next video.
+
+48
+00:07:35,000 --> 00:07:45,313
+You can now create, resolve, update and
+deactivate a DID.
+
+49
+00:07:45,313 --> 00:07:56,656
+Next, we'll issue, verify and revoke
+verifiable credentials, the part that
+
+50
+00:07:56,656 --> 00:07:59,750
+makes identity useful.
